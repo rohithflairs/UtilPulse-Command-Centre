@@ -1,0 +1,57 @@
+Given the following user question, extract the structured operational intent as JSON.
+
+DATABASE TABLE: water_nodes (Municipal water utility telemetry for 10 Indian cities: Mumbai, Delhi, Bangalore, Hyderabad, Chennai, Pune, Ahmedabad, Jaipur, Lucknow, Kolkata)
+AVAILABLE COLUMNS: {schema_columns}
+
+VALID FILTER VALUES:
+- city: Mumbai, Delhi, Bangalore, Hyderabad, Chennai, Pune, Ahmedabad, Jaipur, Lucknow, Kolkata
+- zone_id: Zone_A, Zone_B, Zone_C, Zone_D, Zone_E
+- utility_name: MCGM, Delhi Jal Board, BWSSB, HMWSSB, CMWSSB, PMRDA Water, AMC Water, PHED Rajasthan, Jal Nigam UP, KMC Water
+- season: Winter, Summer, Pre_Monsoon
+- pipe_material: HDPE, Cast_Iron, PVC, Asbestos_Cement, Ductile_Iron
+- demand_category: Residential, Commercial, Industrial, Agricultural, Mixed
+- node_type: Pressure_Only, Combined, Flow_Junction, Quality_Only
+
+CRITICAL RULES FOR DOMAIN RELEVANCE (is_domain_relevant):
+- Set is_domain_relevant to true ONLY if the question is related to water utility operations, water quality (IS 10500 standards), water supply, pressure, flow, volume, pipe networks, leaks, NRW, or water telemetry in the 10 monitored Indian cities.
+- Set is_domain_relevant to false if the question is unrelated to water utility operations or the dataset (e.g. general world trivia, foreign geography, capitals of countries like 'Which city is the capital of China?', politics, entertainment, sports, software code, non-water topics).
+- If is_domain_relevant is false, set intent_type to "out_of_scope", metrics to [], and chart_type to "none".
+
+CRITICAL RULES FOR chart_type:
+- Default to "none".
+- ONLY set chart_type to "bar", "line", or "scatter" if:
+  1. The user EXPLICITLY asks for a visual, chart, plot, graph, or trend (e.g. "plot the...", "show a graph of...", "chart the supply hours").
+  2. The question is a multi-entity comparison or ranking across cities, zones, or pipe materials (e.g. "compare all cities by NRW", "rank pipe materials by leaks", "show monthly trend").
+- NEVER set a chart type for:
+  - Yes/No questions (e.g., "Is water safe in Mumbai?", "Does Delhi have leaks?", "Are pipes old?")
+  - Single entity or single value lookups (e.g., "What is the pressure in Zone A?", "Average flow in Delhi")
+  - Standards, definitions, or general knowledge questions.
+  - Out of scope questions.
+  For all of these, chart_type MUST be "none".
+
+Output this exact JSON structure (no markdown, no code fences):
+{{
+    "is_domain_relevant": <true or false>,
+    "intent_type": "<one of: kpi_query, trend_analysis, comparison, anomaly_detection, compliance_check, asset_analysis, standards_knowledge, out_of_scope>",
+    "metrics": ["<column_names to analyze>"],
+    "filters": {{
+        "city": "<value or null>",
+        "zone_id": "<value or null>",
+        "utility_name": "<value or null>",
+        "season": "<value or null>",
+        "pipe_material": "<value or null>",
+        "demand_category": "<value or null>",
+        "node_type": "<value or null>",
+        "date_start": "<YYYY-MM-DD or null>",
+        "date_end": "<YYYY-MM-DD or null>"
+    }},
+    "aggregation": "<mean, sum, count, min, max, or null>",
+    "group_by": ["<columns to group by, or empty list if single lookup or yes/no>"],
+    "sort_by": "<column or null>",
+    "sort_order": "<asc or desc>",
+    "limit": <number or null>,
+    "chart_type": "<bar, line, scatter, or none>",
+    "needs_domain_context": <true or false>
+}}
+
+User question: {user_question}
